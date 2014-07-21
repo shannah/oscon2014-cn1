@@ -473,4 +473,89 @@ The "Network Thread" prefix on each log line indicates that the output was writt
 
 I have so far just glossed over the concept of the "Event Dispatch Thread".  Most UI toolkits are single threaded and require you to use a single thread for accessing 
 
+##Commands & Navigation
+
+#Native Interfaces
+#Libraries
+#GUI Builder
+## GUI Editor
+###Navigation Exercise
+*Part 1: Creating Forms in the GUI Builder*Steps:1.	Create a new “GUI Builder” project using the native theme.2.	Open the “theme.res” file in the GUI builder.3.	Select the “Main” form.4.	Add 3 buttons to the form with labels “Canada”, “France”, and “Germany” ![Screenshot](3buttons.png)5.	Rename the buttons to “canadaBtn”, “franceBtn”, and “germanyBtn” respectively. ![Screenshot](change-comp-names.png)6.	Next we will add forms for each of our country.  We will start with the “Canada” form. a.	Click the “Add a New GUI Element” button. ![Screenshot](add-gui-element.png)b.	Enter “CanadaForm” for the name of the form, and “Blank Form” as the template. ![Screenshot](canadaform.png)c.	Click “OK”.  This will create a new blank form as follows: ![Screenshot](newblankform.png)d.	Set the title of the form to “Canada”.   This can be done by scrolling to the row in the “Properties” inspector with name “Title”. ![Screenshot](changetitle.png)e.	Add a label to the form with the text “Hello Canada”.  At this point the form should look like the following screenshot:  ![Screenshot](hellocanada.png)7.	Add similar forms for France and Germany using the same procedure that you used to add the Canada form.8.	Once all 3 forms have been created, we will add functionality so that clicking on the buttons in the main form shows the corresponding form.a.	Select the “Main” form again (the one with our buttons).b.	Select the “Canada” button.c.	Click on the “Events” tab of the property inspector. ![Screenshot](events.png)d.	Click on the “Action Event” button.  This should automatically add a method into your Statemachine class inside Netbeans.e.	Save the resource file  (i.e. File > Save).f.	Open the StateMachine class and add the method body for the method that was created:
+ ~~~
+@Override
+    protected void onMain_CanadaBtnAction(Component c, ActionEvent event) {
+        showForm("CanadaForm", null);
+    
+    } ~~~
+ 9.	Add action event handlers for the other 2 buttons using the same procedure.10.	Run the project in NetBeans  ![Screenshot Main Screen](navigation-main.png)
+  
+![Screenshot Canada](canada.png)Notice that the country forms include a “Back” button to the main form.  This is automatically managed by the GUI builder.Part 2: Creating Forms ProgrammaticallySteps:1.	In the GUI builder, Add a button to the “Canada” form named “vancouverBtn” with label “Vancouver”.2.	Add an action event handler for the Vancouver button using the same technique as our previous buttons.  And add the following code inside the handler. 
+~~~
+@Override
+    protected void onCanadaForm_VancouverBtnAction(Component c, ActionEvent event) {
+        Form vancouverForm = new Form("Vancouver");
+        vancouverForm.addComponent(new Label("Hello Vancouver"));
+        
+        vancouverForm.show();
+    
+    }
+~~~ 3.	Run the app.4.	Navigate to the Vancouver form.   
+![Screenshot](vancouver-noback.png) Notice that there is no “Back” button.  This is because we created the form manually so that automatic navigation control of the GUI builder is not in effect.  We can solve this by explicitly adding a “Back” command to the form as follows: 
+ ~~~
+@Override
+    protected void onCanadaForm_VancouverBtnAction(Component c, ActionEvent event) {
+        Form vancouverForm = new Form("Vancouver");
+        vancouverForm.addComponent(new Label("Hello Vancouver"));
+        
+        vancouverForm.setBackCommand(new Command("Canada"){
+
+            @Override
+            public void actionPerformed(ActionEvent evt) {
+                back();
+            }
+            
+        });
+        
+        vancouverForm.show();
+    
+    }
+~~~5.	Re-run the app.  You should now see a back button on the Vancouver form.  And it should return you to the Canada form.***Part 3: Dialogs***Now let’s warn the user before entering France that there may be some French on the form, and give the user the option to proceed or not.Steps:1.	Click “Add a New GUI Element” in the resource editor just as if you were going to add a new form.2.	Enter “FranceWarningDialog” for the name and “AreYouSureDialog” for the template:  ![Screenshot](francedialog.png)You should now see a blank dialog in the editor window. ![Screenshot](blankdialog.png)3.	Set the dialog title to “Are you sure?”4.	Change the text of the label to say “They speak French in France.  Are you sure you want to proceed?”5.	Add an action event handler to the “Yes” button that shows the FranceForm.6.	Add an action event handler to the “No” button that hides the dialog as follows: 
+ ~~~
+    @Override
+    protected void onFranceWarningDialog_NoButtonAction(Component c, ActionEvent event) {
+        
+        Dialog dlg = (Dialog)c.getComponentForm();
+        dlg.dispose();
+    
+    } ~~~7.	Change the code in the “France” button action handler so show our dialog instead of going directly to the “France” form: 
+~~~
+    @Override
+    protected void onFranceWarningDialog_YesButtonAction(Component c, ActionEvent event) {
+        showForm("FranceForm", null);
+    
+    }
+~~~ 8.	Run the app.  This time click the “France” button.  It should now show our dialog. ![Screenshot](french-dialog.png)Note:  Depending on the skin you have selected for the simulator (and associated device resolution), you may see that the message in the dialog gets truncated as in the screenshot above.  This is because we are using a Label component for the message, which does not support text wrapping.  We’ll deal with that next.  For now, you should observe that clicking “Yes” will take you to the “France” form, and clicking “No” will just close the dialog (and return to the main form.9.	Close the simulator and return to the Resource Editor.10.	Delete the label on the dialog and replace it with a Span Label.  Add the same text to the span label.  (You’ll need to add the text in the property editor as span label doesn’t allow you to add the text directly).  The form editor should look something like the following after this is done: ![Screenshot](spanlabel.png)11.	Run the app again.  When you click on France, you should see the dialog open with a message that wraps properly if it is too long for the line: ![Screenshot](spanlabel-live.png)***Part 4: Reusing the Dialog***It is quite common to want to make programmatic customizations to forms and dialogs before they are shown.  The “Before Show” event (see the Events tab of the property inspector) is one place to do this.Modify the navigation to Canada and Germany so that they display the same dialog as France does, except with different/appropriate messages.  For the purpose of this exercise, you should not create any new dialogs in the GUI builder.  You should use the same dialog, except that you will use the Before Show event of the dialog to customize the label text.The “Yes” and “No” button actions should also be modified to perform the appropriate action.  (E.g. when you click “Yes” after having selected “Canada”, you should be taken to the Canada form and not the French form).Some useful tips:•	The StateMachine class inherits lots of useful findXXX() methods for getting references to GUI elements on the form.  E.g.  You can get a reference to the “Yes” button with findYesButton(Component)  (this is because the “yes” button is named “yesButton” in the GUI builder.•	You should always use the findXXX() variant that takes a component as a parameter.  This component can be the form, or any component on the form.•	You might want to change the name of the span label in our dialog to make it easier to find using the findXXX() methods.
+## Themes
+### Exercise
+One of the most powerful aspects of Codename One is its support for custom themes.  In this exercise, we will use some graphic assets and fonts to create a custom theme that looks like:![Theme screenshot](theme-exercise.png) Steps:1.	Override the Form, TextField, Label, Button, Title, TitleArea, and CheckBox styles to achieve this look.2.	Override the relevant constants for the checked and unchecked images  of checkboxes.Some helpful hints:1. Download an existing theme, open it up in the Resource Editor and look at the different theme constants and UIIDs that are used.  E.g.  The [iPhone Theme](https://codenameone.googlecode.com/svn/trunk/Ports/iOSPort/src/iPhoneTheme.res)References:1.	You can download the [Good Dog font](https://github.com/shannah/oscon2014-ex5/blob/master/Jolly%20UI%20Free/fonts/good_dog/GOODDP__.ttf)2.	You can download the necessary image assets [here](https://github.com/shannah/oscon2014-ex5/tree/master/Jolly%20UI%20Free/exports)3.	The graphics for this theme were obtained from the Jolly UI Free kit (http://handdrawngoods.com/store/jolly-ui-free-hand-drawn-ui-kit/).4.	The font is Good Dog, obtained here: http://www.dafont.com/good-dog.font
+
+##Generic List Renderer
+#Local Builds
+#Unit Tests
+#Other Components
+##Web Browser
+##Maps (Lightweight and Native)
+#Javascript Bridge
+#Graphics
+##2D Graphics
+##3D Graphics
+##Animations
+#Transitions
+
+
+
+
+
+
+
 
