@@ -540,6 +540,15 @@ I have so far just glossed over the concept of the "Event Dispatch Thread".  Mos
 One of the most powerful aspects of Codename One is its support for custom themes.  In this exercise, we will use some graphic assets and fonts to create a custom theme that looks like:![Theme screenshot](theme-exercise.png) Steps:1.	Override the Form, TextField, Label, Button, Title, TitleArea, and CheckBox styles to achieve this look.2.	Override the relevant constants for the checked and unchecked images  of checkboxes.Some helpful hints:1. Download an existing theme, open it up in the Resource Editor and look at the different theme constants and UIIDs that are used.  E.g.  The [iPhone Theme](https://codenameone.googlecode.com/svn/trunk/Ports/iOSPort/src/iPhoneTheme.res)References:1.	You can download the [Good Dog font](https://github.com/shannah/oscon2014-ex5/blob/master/Jolly%20UI%20Free/fonts/good_dog/GOODDP__.ttf)2.	You can download the necessary image assets [here](https://github.com/shannah/oscon2014-ex5/tree/master/Jolly%20UI%20Free/exports)3.	The graphics for this theme were obtained from the Jolly UI Free kit (http://handdrawngoods.com/store/jolly-ui-free-hand-drawn-ui-kit/).4.	The font is Good Dog, obtained here: http://www.dafont.com/good-dog.font
 
 ##Generic List Renderer
+
+The Generic List Renderer provides an (arguably) easier mechanism for rendering complex lists.  It assumes that the model objects are Maps (e.g. Hashtable or HashMap), and the component prototype (i.e. the render cell component) has named components that take their values from the corresponding named entry in the model Map.
+
+* [Example project](https://github.com/shannah/oscon2014-ex7/)
+* [Example State Machine](https://github.com/shannah/oscon2014-ex7/blob/master/src/userclasses/StateMachine.java)
+
+In the above example project, the "prototype" components are created in the GUI builder.  Then the renderer is created in the beforeMain() method of the state machine.
+
+
 #Local Builds
 #Unit Tests
 #Other Components
