@@ -548,6 +548,124 @@ The Generic List Renderer provides an (arguably) easier mechanism for rendering 
 
 In the above example project, the "prototype" components are created in the GUI builder.  Then the renderer is created in the beforeMain() method of the state machine.
 
+### Exercise : Youtube Navigator
+
+***Steps***
+
+Create a new GUI builder app.
+
+We will create a Video class for our application to act as a model for the videos we load from YouTube.  You can download this class from [GitHub](https://github.com/shannah/oscon2014-ex7/blob/part1/src/ca/weblite/oscon/ex7/Video.java)
+
+In the state machine, add a utility method to fetch a JSON video list from YouTube.
+
+~~~
+    private java.util.List<Video> fetchVideoList(String url){
+        final ArrayList<Video> out = new ArrayList<Video>();
+        ConnectionRequest req = new ConnectionRequest(){
+
+            @Override
+            protected void readResponse(InputStream input) throws IOException {
+                JSONParser p = new JSONParser();
+                Map data = p.parseJSON(new InputStreamReader(input, "UTF-8"));
+                data = (Map)data.get("data");
+                java.util.List<Map> items = (java.util.List<Map>)data.get("items");
+                for (Map item : items){
+                    Video v = new Video();
+                    v.setId((String)item.get("id"));
+                    v.setTitle((String)item.get("title"));
+                    v.setDescription((String)item.get("description"));
+                    Map thumb = (Map)item.get("thumbnail");
+                    v.setThumbnailUrl((String)thumb.get("hqDefault"));
+                    Map content = (Map)item.get("content");
+                    //v.setVideoUrl((String)content.get("5"));
+                    v.setVideoUrl("https://www.youtube.com/embed/"+v.getId()+"?feature=player_embedded&html5=1");
+                    //Map player = (Map)item.get("player");
+                    //v.setVideoUrl((String)player.get("default"));
+                    v.setCategory((String)item.get("category"));
+                    v.setUploader((String)item.get("uploader"));
+                    out.add(v);
+                }
+            }
+            
+        };
+        req.setUrl(url);
+        req.setPost(false);
+        NetworkManager.getInstance().addToQueueAndWait(req);
+        
+        return out;
+        
+    }
+~~~
+
+In the main form, in the GUI builder, set the layout to BorderLayout and add a List in the center panel.  Name this list "videoList".
+
+Using the "Events" tab of the property inspector, click the "List Model" button.  This will create a method in your state machine:
+
+~~~
+    @Override
+    protected boolean initListModelVideoList(List cmp) {}
+~~~
+
+Add some private variables to the StateMachine class:
+
+~~~
+private java.util.List<Video> videoList;
+private static String feedURL = "https://gdata.youtube.com/feeds/api/videos?q=xataface&max-results=30&v=2&alt=jsonc&orderby=published";
+~~~
+
+Now implement the initListModelVideoList method:
+
+~~~
+    @Override
+    protected boolean initListModelVideoList(List cmp) {
+        final java.util.List<Video> vids = new ArrayList<Video>();
+        if ( videoList.isEmpty()){
+            Display.getInstance().invokeAndBlock(new Runnable(){
+
+                public void run() {
+                    
+                    videoList.addAll(fetchVideoList(feedURL));
+                }
+                
+            });
+        }
+        vids.addAll(videoList);
+        
+        Map[] data = new Map[vids.size()];
+        int i=0;
+        for ( Video video : vids ){
+            Map item = new HashMap();
+            item.put("video", video);
+            item.put("staticUploadedBy", "Uploaded by");
+            item.put("staticOn", "on");
+            item.put("thumbnail_URLImage", video.getThumbnailUrl());
+            item.put("thumbnail_URLImageName", video.getId()+"Thumb");
+            
+            item.put("title", video.getTitle());
+            item.put("description", video.getDescription());
+            item.put("uploader", video.getUploader());
+            item.put("uploadDate", video.getUploadDate());
+            
+            //Log.p(item+"");
+            data[i++] = item;
+            
+        }
+        
+        cmp.setModel(new com.codename1.ui.list.DefaultListModel(data));
+        
+        return true;
+    }
+
+~~~
+
+Notice that we are creating a list model of Maps from our Video list.  This is because we intend to use the GenericListRenderer and it only works with Map models.
+
+#### Creating the Renderer
+
+Add a new GUI element named VideoCellRenderer, of type "Blank Container".
+
+….
+
 
 #Local Builds
 #Unit Tests
